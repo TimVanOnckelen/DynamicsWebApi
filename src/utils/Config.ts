@@ -14,8 +14,9 @@ export interface InternalConfig extends Config {
 }
 
 const getApiUrl = (serverUrl: string | undefined | null, apiConfig: ApiConfig): string => {
-    if (Utility.isRunningWithinPortals()) {
-        return new URL("_api", global.window.location.origin).toString() + "/";
+    if (Utility.isRunningWithinPortals() || apiConfig.isPowerPagesApi) {
+        if (!serverUrl) serverUrl = global.window.location.origin;
+        return new URL("_api", serverUrl!).toString() + "/";
     } else {
         if (!serverUrl) serverUrl = Utility.getClientUrl();
         return new URL(`api/${apiConfig.path}/v${apiConfig.version}`, serverUrl).toString() + "/";
@@ -129,6 +130,7 @@ export class ConfigurationUtility {
                 version: "1.0",
                 url: ""
             },
+            isPowerPagesApi: false
         };
     }
 }

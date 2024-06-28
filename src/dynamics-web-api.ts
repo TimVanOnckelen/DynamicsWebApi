@@ -1696,6 +1696,8 @@ export interface ApiConfig {
     version?: string;
     /** API Path, for example: "data" or "search" */
     path?: string;
+    /** Using Power Pages? eg in PCF component */
+    isPowerPagesApi?: boolean
 }
 
 export interface AccessToken {
@@ -1730,6 +1732,8 @@ export interface Config {
     searchApi?: ApiConfig;
     /**Default headers to supply with each request. */
     headers?: HeaderCollection;
+    /** Use Power Pages API, eg within a PCF with a proxy server */
+    isPowerPagesApi?: boolean
 }
 
 /**Header collection type */
