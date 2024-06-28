@@ -1,4 +1,4 @@
-/*! @thexeroxbe/dynamics-web-api v2.1.5 (c) 2024 Aleksandr Rogov */
+/*! @thexeroxbe/dynamics-web-api v2.1.6 (c) 2024 Aleksandr Rogov */
 /// <reference types="node" />
 /**
  * Microsoft Dynamics CRM Web API helper library written in JavaScript.

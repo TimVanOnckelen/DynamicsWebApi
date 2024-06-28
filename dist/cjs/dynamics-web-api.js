@@ -1,4 +1,4 @@
-/*! @thexeroxbe/dynamics-web-api v2.1.5 (c) 2024 Aleksandr Rogov */
+/*! @thexeroxbe/dynamics-web-api v2.1.6 (c) 2024 Aleksandr Rogov */
 "use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
