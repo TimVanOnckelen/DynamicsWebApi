@@ -18,8 +18,10 @@ const getApiUrl = (serverUrl: string | undefined | null, apiConfig: ApiConfig): 
         if (!serverUrl) serverUrl = global.window.location.origin;
         return new URL("_api", serverUrl!).toString() + "/";
     } else {
-        if (!serverUrl) serverUrl = Utility.getClientUrl();
-        return new URL(`api/${apiConfig.path}/v${apiConfig.version}`, serverUrl).toString() + "/";
+        // if (!serverUrl) serverUrl = Utility.getClientUrl();
+        // return new URL(`api/${apiConfig.path}/v${apiConfig.version}`, serverUrl).toString() + "/";
+        if (!serverUrl) serverUrl = global.window.location.origin;
+        return new URL("_api", serverUrl!).toString() + "/";
     }
 };
 
@@ -123,14 +125,14 @@ export class ConfigurationUtility {
             dataApi: {
                 path: "data",
                 version: "9.2",
-                url: ""
+                url: "",
             },
             searchApi: {
                 path: "search",
                 version: "1.0",
-                url: ""
+                url: "",
             },
-            isPowerPagesApi: false
+            isPowerPagesApi: false,
         };
     }
 }

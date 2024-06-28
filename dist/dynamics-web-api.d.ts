@@ -1,4 +1,4 @@
-/*! dynamics-web-api v2.1.4 (c) 2024 Aleksandr Rogov */
+/*! @thexeroxbe/dynamics-web-api v2.1.5 (c) 2024 Aleksandr Rogov */
 /// <reference types="node" />
 /**
  * Microsoft Dynamics CRM Web API helper library written in JavaScript.
@@ -842,6 +842,8 @@ export interface ApiConfig {
     version?: string;
     /** API Path, for example: "data" or "search" */
     path?: string;
+    /** Using Power Pages? eg in PCF component */
+    isPowerPagesApi?: boolean;
 }
 export interface AccessToken {
     /** Access Token */
@@ -874,12 +876,11 @@ export interface Config {
     searchApi?: ApiConfig;
     /**Default headers to supply with each request. */
     headers?: HeaderCollection;
+    /** Use Power Pages API, eg within a PCF with a proxy server */
+    isPowerPagesApi?: boolean;
 }
 /**Header collection type */
-export type HeaderCollection = {
-    /**key-value */
-    [key: string]: string;
-};
+export type HeaderCollection = Record<string, string>;
 export interface ProxyConfig {
     /**Proxy server url */
     url: string;
