@@ -13,15 +13,15 @@ export interface InternalConfig extends Config {
     searchApi: InternalApiConfig;
 }
 
-const getApiUrl = (serverUrl: string | undefined | null, apiConfig: ApiConfig): string => {
-    if (Utility.isRunningWithinPortals() || apiConfig.isPowerPagesApi) {
+const getApiUrl = (serverUrl: string | undefined | null, apiConfig: ApiConfig, isPowerPage?: boolean): string => {
+    if (Utility.isRunningWithinPortals() || isPowerPage) {
         if (!serverUrl) serverUrl = global.window.location.origin;
         return new URL("_api", serverUrl!).toString() + "/";
     } else {
-        // if (!serverUrl) serverUrl = Utility.getClientUrl();
-        // return new URL(`api/${apiConfig.path}/v${apiConfig.version}`, serverUrl).toString() + "/";
-        if (!serverUrl) serverUrl = global.window.location.origin;
-        return new URL("_api", serverUrl!).toString() + "/";
+        if (!serverUrl) serverUrl = Utility.getClientUrl();
+        return new URL(`api/${apiConfig.path}/v${apiConfig.version}`, serverUrl).toString() + "/";
+        // if (!serverUrl) serverUrl = global.window.location.origin;
+        // return new URL("_api", serverUrl!).toString() + "/";
     }
 };
 
@@ -38,7 +38,7 @@ const mergeApiConfigs = (apiConfig: ApiConfig | undefined, apiType: ApiType, int
         internalApiConfig.path = apiConfig.path;
     }
 
-    internalApiConfig.url = getApiUrl(internalConfig.serverUrl, internalApiConfig);
+    internalApiConfig.url = getApiUrl(internalConfig.serverUrl, internalApiConfig, internalConfig.isPowerPagesApi);
 };
 
 export class ConfigurationUtility {
@@ -48,6 +48,10 @@ export class ConfigurationUtility {
         if (config?.serverUrl) {
             ErrorHelper.stringParameterCheck(config.serverUrl, "DynamicsWebApi.setConfig", "config.serverUrl");
             internalConfig.serverUrl = config.serverUrl;
+        }
+
+        if (config?.isPowerPagesApi) {
+            internalConfig.isPowerPagesApi = config.isPowerPagesApi;
         }
 
         mergeApiConfigs(config?.dataApi, "dataApi", internalConfig);
@@ -132,7 +136,6 @@ export class ConfigurationUtility {
                 version: "1.0",
                 url: "",
             },
-            isPowerPagesApi: false,
         };
     }
 }

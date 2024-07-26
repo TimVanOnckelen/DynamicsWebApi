@@ -1,4 +1,4 @@
-/*! @thexeroxbe/dynamics-web-api v2.1.6 (c) 2024 Aleksandr Rogov */
+/*! @thexeroxbe/dynamics-web-api v2.1.7 (c) 2024 Aleksandr Rogov */
 /// <reference types="node" />
 /**
  * Microsoft Dynamics CRM Web API helper library written in JavaScript.
@@ -132,6 +132,13 @@ export declare class DynamicsWebApi {
      * @returns {Promise} D365 Web Api Response
      */
     countAll: (request: CountAllRequest) => Promise<number>;
+    /**
+     * Sends an asynchronous request to execute a Power AutomateFlow. Returns: DWA.Types.FetchXmlResponse
+     *
+     * @param request - An object that represents all possible options for a current request.
+     * @returns {Promise} D365 Web Api Response
+     */
+    callPowerAutomateFlow: <T = any>(request: CallPowerAutomate) => Promise<FetchXmlResponse<T>>;
     /**
      * Sends an asynchronous request to execute FetchXml to retrieve records. Returns: DWA.Types.FetchXmlResponse
      *
@@ -436,6 +443,9 @@ export interface FetchXmlRequest extends FetchAllRequest {
     /**Paging cookie. To retrive the first page, pagingCookie must be null. */
     pagingCookie?: string;
 }
+export interface CallPowerAutomate extends Request {
+    powerAutomateId: string;
+}
 export interface CreateRequest<T = any> extends CRUDRequest {
     /**If set to true, the request bypasses custom business logic, all synchronous plug-ins and real-time workflows are disabled. Check for special exceptions in Microsft Docs. */
     bypassCustomPluginExecution?: boolean;
@@ -618,7 +628,7 @@ export interface UnboundFunctionRequest extends BaseRequest {
     /**
      * Name of the function.
      * @deprecated Use "name" parameter.
-    */
+     */
     functionName?: string;
     /**Function's input parameters. Example: { param1: "test", param2: 3 }. */
     parameters?: any;
@@ -842,8 +852,6 @@ export interface ApiConfig {
     version?: string;
     /** API Path, for example: "data" or "search" */
     path?: string;
-    /** Using Power Pages? eg in PCF component */
-    isPowerPagesApi?: boolean;
 }
 export interface AccessToken {
     /** Access Token */

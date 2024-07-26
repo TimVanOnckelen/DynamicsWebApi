@@ -1,4 +1,4 @@
-/*! @thexeroxbe/dynamics-web-api v2.1.6 (c) 2024 Aleksandr Rogov */
+/*! @thexeroxbe/dynamics-web-api v2.1.7 (c) 2024 Aleksandr Rogov */
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -836,15 +836,15 @@ var init_xhr = __esm({
 // src/utils/Config.ts
 init_Utility();
 init_ErrorHelper();
-var getApiUrl = (serverUrl, apiConfig) => {
-  if (Utility.isRunningWithinPortals() || apiConfig.isPowerPagesApi) {
+var getApiUrl = (serverUrl, apiConfig, isPowerPage) => {
+  if (Utility.isRunningWithinPortals() || isPowerPage) {
     if (!serverUrl)
       serverUrl = window.location.origin;
     return new URL("_api", serverUrl).toString() + "/";
   } else {
     if (!serverUrl)
-      serverUrl = window.location.origin;
-    return new URL("_api", serverUrl).toString() + "/";
+      serverUrl = Utility.getClientUrl();
+    return new URL(`api/${apiConfig.path}/v${apiConfig.version}`, serverUrl).toString() + "/";
   }
 };
 var mergeApiConfigs = (apiConfig, apiType, internalConfig) => {
@@ -857,13 +857,16 @@ var mergeApiConfigs = (apiConfig, apiType, internalConfig) => {
     ErrorHelper.stringParameterCheck(apiConfig.path, "DynamicsWebApi.setConfig", `config.${apiType}.path`);
     internalApiConfig.path = apiConfig.path;
   }
-  internalApiConfig.url = getApiUrl(internalConfig.serverUrl, internalApiConfig);
+  internalApiConfig.url = getApiUrl(internalConfig.serverUrl, internalApiConfig, internalConfig.isPowerPagesApi);
 };
 var ConfigurationUtility = class {
   static merge(internalConfig, config) {
     if (config?.serverUrl) {
       ErrorHelper.stringParameterCheck(config.serverUrl, "DynamicsWebApi.setConfig", "config.serverUrl");
       internalConfig.serverUrl = config.serverUrl;
+    }
+    if (config?.isPowerPagesApi) {
+      internalConfig.isPowerPagesApi = config.isPowerPagesApi;
     }
     mergeApiConfigs(config?.dataApi, "dataApi", internalConfig);
     mergeApiConfigs(config?.searchApi, "searchApi", internalConfig);
@@ -932,8 +935,7 @@ var ConfigurationUtility = class {
         path: "search",
         version: "1.0",
         url: ""
-      },
-      isPowerPagesApi: false
+      }
     };
   }
 };
@@ -1898,6 +1900,36 @@ var DynamicsWebApi = class _DynamicsWebApi {
       ErrorHelper.parameterCheck(request, "DynamicsWebApi.countAll", "request");
       const response = await this._retrieveAllRequest(request);
       return response ? response.value ? response.value.length : 0 : 0;
+    };
+    /**
+     * Sends an asynchronous request to execute a Power AutomateFlow. Returns: DWA.Types.FetchXmlResponse
+     *
+     * @param request - An object that represents all possible options for a current request.
+     * @returns {Promise} D365 Web Api Response
+     */
+    this.callPowerAutomateFlow = async (request) => {
+      ErrorHelper.parameterCheck(request, "DynamicsWebApi.fetch", "request");
+      const internalRequest = Utility.copyRequest(request);
+      internalRequest.method = "GET";
+      internalRequest.functionName = "fetch";
+      ErrorHelper.stringParameterCheck(internalRequest.fetchXml, "DynamicsWebApi.fetch", "request.fetchXml");
+      if (internalRequest.fetchXml && !/^<fetch.+top=/.test(internalRequest.fetchXml)) {
+        let replacementString = "";
+        if (!/^<fetch.+page=/.test(internalRequest.fetchXml)) {
+          internalRequest.pageNumber = internalRequest.pageNumber || 1;
+          ErrorHelper.numberParameterCheck(internalRequest.pageNumber, "DynamicsWebApi.fetch", "request.pageNumber");
+          replacementString = `$1 page="${internalRequest.pageNumber}"`;
+        }
+        if (internalRequest.pagingCookie != null) {
+          ErrorHelper.stringParameterCheck(internalRequest.pagingCookie, "DynamicsWebApi.fetch", "request.pagingCookie");
+          replacementString += ` paging-cookie="${internalRequest.pagingCookie}"`;
+        }
+        if (replacementString)
+          internalRequest.fetchXml = internalRequest.fetchXml.replace(/^(<fetch)/, replacementString);
+      }
+      internalRequest.responseParameters = { pageNumber: internalRequest.pageNumber };
+      const response = await this._makeRequest(internalRequest);
+      return response?.data;
     };
     /**
      * Sends an asynchronous request to execute FetchXml to retrieve records. Returns: DWA.Types.FetchXmlResponse

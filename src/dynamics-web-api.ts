@@ -429,6 +429,48 @@ export class DynamicsWebApi {
     };
 
     /**
+     * Sends an asynchronous request to execute a Power AutomateFlow. Returns: DWA.Types.FetchXmlResponse
+     *
+     * @param request - An object that represents all possible options for a current request.
+     * @returns {Promise} D365 Web Api Response
+     */
+    callPowerAutomateFlow = async <T = any>(request: CallPowerAutomate): Promise<FetchXmlResponse<T>> => {
+        ErrorHelper.parameterCheck(request, "DynamicsWebApi.fetch", "request");
+
+        const internalRequest = Utility.copyRequest(request);
+        internalRequest.method = "GET";
+        internalRequest.functionName = "fetch";
+
+        ErrorHelper.stringParameterCheck(internalRequest.fetchXml, "DynamicsWebApi.fetch", "request.fetchXml");
+
+        //only add paging if there is no top
+        if (internalRequest.fetchXml && !/^<fetch.+top=/.test(internalRequest.fetchXml)) {
+            let replacementString: string = "";
+
+            if (!/^<fetch.+page=/.test(internalRequest.fetchXml)) {
+                internalRequest.pageNumber = internalRequest.pageNumber || 1;
+
+                ErrorHelper.numberParameterCheck(internalRequest.pageNumber, "DynamicsWebApi.fetch", "request.pageNumber");
+                replacementString = `$1 page="${internalRequest.pageNumber}"`;
+            }
+
+            if (internalRequest.pagingCookie != null) {
+                ErrorHelper.stringParameterCheck(internalRequest.pagingCookie, "DynamicsWebApi.fetch", "request.pagingCookie");
+                replacementString += ` paging-cookie="${internalRequest.pagingCookie}"`;
+            }
+
+            //add page number and paging cookie to fetch xml
+            if (replacementString) internalRequest.fetchXml = internalRequest.fetchXml.replace(/^(<fetch)/, replacementString);
+        }
+
+        internalRequest.responseParameters = { pageNumber: internalRequest.pageNumber };
+
+        const response = await this._makeRequest(internalRequest);
+
+        return response?.data;
+    };
+
+    /**
      * Sends an asynchronous request to execute FetchXml to retrieve records. Returns: DWA.Types.FetchXmlResponse
      *
      * @param request - An object that represents all possible options for a current request.
@@ -1247,6 +1289,10 @@ export interface FetchXmlRequest extends FetchAllRequest {
     pagingCookie?: string;
 }
 
+export interface CallPowerAutomate extends Request {
+    powerAutomateId: string;
+}
+
 export interface CreateRequest<T = any> extends CRUDRequest {
     /**If set to true, the request bypasses custom business logic, all synchronous plug-ins and real-time workflows are disabled. Check for special exceptions in Microsft Docs. */
     bypassCustomPluginExecution?: boolean;
@@ -1437,9 +1483,9 @@ export interface UnboundFunctionRequest extends BaseRequest {
      */
     name?: string;
     /**
-     * Name of the function. 
+     * Name of the function.
      * @deprecated Use "name" parameter.
-    */
+     */
     functionName?: string;
     /**Function's input parameters. Example: { param1: "test", param2: 3 }. */
     parameters?: any;
@@ -1696,8 +1742,6 @@ export interface ApiConfig {
     version?: string;
     /** API Path, for example: "data" or "search" */
     path?: string;
-    /** Using Power Pages? eg in PCF component */
-    isPowerPagesApi?: boolean
 }
 
 export interface AccessToken {
@@ -1733,7 +1777,7 @@ export interface Config {
     /**Default headers to supply with each request. */
     headers?: HeaderCollection;
     /** Use Power Pages API, eg within a PCF with a proxy server */
-    isPowerPagesApi?: boolean
+    isPowerPagesApi?: boolean;
 }
 
 /**Header collection type */
